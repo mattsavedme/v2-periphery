@@ -48,13 +48,31 @@ library UniswapV2Library {
         uint denominator = reserveIn.mul(1000).add(amountInWithFee);
         amountOut = numerator / denominator;
     }
-
+ 
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal pure returns (uint amountIn) {
         require(amountOut > 0, 'UniswapV2Library: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
         uint numerator = reserveIn.mul(amountOut).mul(1000);
         uint denominator = reserveOut.sub(amountOut).mul(997);
+
+        /* (x + &x) * (y - &y) = x * y
+
+            (reserveIn + amountIn * 0.997) * (reserveOut - amountOut) = reserveIn * reserveOut
+
+
+            amountIn * 0.997 * reserveOut = reserveIn * amountOut + amountIn * 0.997 * amountOut
+            
+            amountIn * 0.997 * reserveOut - amountIn * 0.997 * amountOut = reserveIn * amountOut
+
+            amountIn * 0.997 * (reserveOut - amountOut) = reserveIn * amountOut
+
+            amountIn * 997 / 1000 * (reserveOut - amountOut) = reserveIn * amountOut
+
+            amountIn * (reserveOut - amountOut) = reserveIn * amountOut * 1000 / 997
+
+            amountIn = reserveIn * amountOut * 1000 / (997 * (reserveOut - amountOut))
+        */
         amountIn = (numerator / denominator).add(1);
     }
 
